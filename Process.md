@@ -1,60 +1,89 @@
-# Staging the VM
-- Make sure you are in a custom GCP Project and not the default
-- Sometime’s I need the light background, but that is grounds for *getting supplexed 59 times* during a class call, so switch to the dark side (dark mode) for the sake of eye sight.
-- In the search bar, type “vm” and VM Instances will pop up
-- In Machine Configuration, for a basic VM we will stick to these:
-  - Virtual CPU: E2 (e2-medium)
-  - OS: Linux (Debian)
-  - Data protection: No backups
-  - Networking: Allow HTTP traffic is selected
-  - Advanced: Import the Startup script provided from SEIR-1 repo
-    - [SEIR-1/weekly_lessons/weeka/userscripts/supera.sh at main · BalericaAI/SEIR-1](https://github.com/BalericaAI/SEIR-1/blob/main/weekly_lessons/weeka/userscripts/supera.sh)
-  - Create VM: Create button near bottom of the Create an instance page.
-___
-# Having some fun
-- Return to the VM instances page, and we will see any vm we’ve created.
-- The details of my vm Name and Zone were picked by me in the previous steps.
-- We want to make sure that the bash script worked so we grabbed the External IP by copying it and opening a new tab in our browser.
-- Type `http:.//<External IP>` in this case it is `http://34.101.98.17`.
-- Webpage should display the SEIR-I-Ops Panel. Styles may very depending html styling.
-- We can run some tests, by connecting to the vm instance via SSH.
-- GCP has a built-in SSH plugin or you can also SSH via from your machine as long as your `gcloud auth login` is all set up. To SSH into a GCP vm instance:
-```bash 
+### Staging the VM
+
+First, make sure you are in a custom GCP Project and not the default one. 
+
+Sometimes I need the light background, but that is grounds for getting suplexed 59 times during a class call. Do yourself a favor and switch to the dark side (dark mode) for the sake of your eyesight.
+
+1. In the top search bar, type **"vm"** and select **VM Instances**.
+2. Click the **Create Instance** button near the bottom of the page.
+3. In the Machine Configuration section, we will stick to these settings for a basic VM:
+   * **Virtual CPU:** E2 (`e2-medium`)
+   * **OS:** Linux (Debian)
+   * **Data protection:** No backups
+   * **Networking:** Check "Allow HTTP traffic"
+   * **Advanced:** Import the startup script provided from the SEIR-1 repo: [supera.sh](https://github.com/BalericaAI/SEIR-1/blob/main/weekly_lessons/weeka/userscripts/supera.sh)
+
+### Having Some Fun
+
+Return to the **VM instances** page, where you will now see the VM you just created (with the Name and Zone you picked in the previous steps).
+
+Let's make sure the bash script actually worked:
+1. Copy the **External IP** of your VM.
+2. Open a new tab in your browser and go to `http://<External IP>` (for example: `http://34.101.98.17`).
+3. The webpage should display the SEIR-I-Ops Panel. *(Note: Styles may vary depending on HTML styling).*
+
+Now, let's run some tests by connecting to the VM instance via SSH. GCP has a built-in SSH plugin in the console, or you can SSH directly from your local terminal as long as you've run `gcloud auth login`. 
+
+To SSH into your GCP VM instance from your terminal:
+```bash
 gcloud compute ssh VM_NAME --zone=ZONE
 ```
-- Inside the vm we run these commands:
-  - curl localhost
-  - curl -s localhost | head
-  - systemctl status nginx --no-pager
-  - curl -s localhost/healthz
-  - curl -s localhost/metadata | jq .
-# Gate Script Checks
-- We can deploy a script and run it through vscode for gate check validations.
-- Using the terminal, we create a directory on our local machine to store our code and open up vscode. for example : ~/dev/theowaf/class7.5/gcp/homework/weeka-a
-- Once inside that folder, use `code . ` to open vs code within that directory.
-- Create the file `gate_gcp_vm_http_ok.sh` and grab the script `gate_gcp_vm_http_ok.sh` from the SEIR-1 repo.
-- Paste the content of the script inside of that newly created file in vscode.
-- We can use the terminal within vscode to run the script. First, let’s make note of the External IP of our vm instance. 
-- To run the script, double check that we are inside of the same directory where the script is located with command `pwd`: 
-- Enter: VM_IP=<External IP> ./gate_gcp_vm_http_ok.sh
-- If you get an error output `Permission denied` then make the script executable via:
-- `chmod +x gate_gcp_vm_http_ok.sh` command.
-- Once the scripts runs with no issue, your output will indicate Lab 1 Gate Result: PASS.
-- Your service is reachable, endpoints are healthy, metadata endpoint returns valid JSON.
-- badge.txt and gate_result.json will generate inside the directory and vscode as your proof of pass.
 
+Once inside the VM, run these commands to verify everything is running smoothly:
+```bash
+curl localhost
+curl -s localhost | head
+systemctl status nginx --no-pager
+curl -s localhost/healthz
+curl -s localhost/metadata | jq .
+```
 
-# Troubleshooting
-## Issue with macOS users
-- For macOS users, there is a known runtime error that will occur once you run the script: `gate_gcp_vm_http_ok.sh: line 115: failures[@]: unbound variable`
-- ```bash
-  Line 115:failures_json=￼$(printf '%s\n' "$￼￼{failures[@]}" | jq -R . | jq -s .)` 
-  ```
-- To fix the error, add `[@]:-}`
+### Gate Script Checks
 
+Next, we are going to deploy a script and run it through VS Code for gate check validations.
 
-At the beginning of the gate_gcp_vm_http_ok.sh script, the line set -euo pipefail is present. The 'u' component signifies that empty or unbound variables should be regarded as mistakes.
-The failures array remains empty as long as all checks are successful. When set -u is enabled, bash on macOS interprets an empty array ${failures[@]} as an unbound variable. The script fails at line 115 due to its attempt to utilize it.
+1. Using your local terminal, create a directory to store your code and navigate into it. For example: 
+   ```bash
+   mkdir -p ~/dev/theowaf/class7.5/gcp/homework/weeka-a
+   cd ~/dev/theowaf/class7.5/gcp/homework/weeka-a
+   ```
+2. Open VS Code in that directory by running: `code .`
+3. Create a new file called `gate_gcp_vm_http_ok.sh` and paste in the script contents from the SEIR-1 repo.
+4. Open the integrated terminal in VS Code and double-check you are in the correct directory using the `pwd` command. 
 
-The modification ${failures[@]:-} introduces a default empty value. This instructs bash to utilize nothing in the event that the variable is empty or unset, rather than generating an error.
+Before running the script, make it executable so you don't get a `Permission denied` error:
+```bash
+chmod +x gate_gcp_vm_http_ok.sh
+```
 
+Now, run the script, making sure to pass in your VM's External IP:
+```bash
+VM_IP=<Your_External_IP> ./gate_gcp_vm_http_ok.sh
+```
+
+If the script runs with no issues, your output will indicate: `Lab 1 Gate Result: PASS`. This proves your service is reachable, your endpoints are healthy, and your metadata endpoint returns valid JSON.
+
+As proof of your pass, a `badge.txt` and `gate_result.json` file will automatically generate inside your directory.
+
+---
+
+### Troubleshooting
+
+#### Known Issue for macOS Users
+
+For macOS users, you might run into this runtime error when executing the script: 
+`gate_gcp_vm_http_ok.sh: line 115: failures[@]: unbound variable`
+
+**Why this happens:**
+At the beginning of the script, there is a line that says `set -euo pipefail`. The `u` component tells bash to treat empty or unbound variables as errors. If all your checks pass, the `failures` array remains empty. On macOS, bash interprets that empty `${failures[@]}` array as an unbound variable, causing the script to fail at Line 115:
+```bash
+failures_json=$(printf '%s\n' "${failures[@]}" | jq -R . | jq -s .)
+```
+
+**The Fix:**
+You need to add `:-` to the array call to introduce a default empty value. This instructs bash to use "nothing" if the variable is empty instead of throwing an error.
+
+Change the variable in Line 115 to look like this:
+```bash
+"${failures[@]:-}"
+```
