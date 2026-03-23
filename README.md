@@ -15,3 +15,16 @@ The primary goal of this repository is to track my progression in mastering GCP 
 
 ## Repository Structure
 Each homework assignment and lab is organized into its own dedicated directory. Inside each folder, you will find the necessary deployment scripts, configuration files, and a detailed `README.md` outlining the architectural walkthrough, expected deliverables, and automated verification evidence.
+---
+### [Week A — GCP VM Deployment and Automated HTTP Validation](https://github.com/yearninlearnin/class-7.5-hw/tree/week-a-hw)
+**Overview:**
+
+- Deploy an Nginx web server on a GCP VM with custom `/healthz` and `/metadata` endpoints, validated by an automated gate script.
+
+- **Tools:** GCP Compute Engine, Nginx, gcloud CLI, bash, curl, jq
+
+**Deliverables:**
+- Active GCP VM serving Nginx over public IP
+- Functional `/healthz` and `/metadata` endpoints
+- Automated gate script passing with `badge.txt` and `gate_result.json`
+---
